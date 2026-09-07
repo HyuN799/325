@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>2048 - 单文件实现</title>
+  <style>
+    :root{
+      --bg:#faf8ef;
+      --board:#bbada0;
+      --cell:#cdc1b4;
+      --text:#776e65;
+      --light:#f9f6f2;
+      --tile-size:100px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      background:var(--bg);
+      color:var(--text);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:30px;
+    }
+    .game{
+      width:460px;
+    }
+    .header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom:15px;
+    }
+    .title{font-size:48px; font-weight:700; color:#776e65;}
+    .score-box{background:#bbada0;color:white;padding:10px 16px;border-radius:4px;font-weight:700}
+
+    .board{
+      background:var(--board);
+      padding:15px;
+      border-radius:6px;
+      position:relative;
+    }
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      grid-gap:15px;
+    }
+    .cell{
+      background:var(--cell);
+      height:100px;
+      border-radius:4px;
+    }
+    .tile{
+      position:relative;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      height:100px;
+      border-radius:4px;
+      font-weight:700;
+      font-size:32px;
+      color:var(--light);
+    }
+    .tile-2{background:#eee4da;color:#776e65}
+    .tile-4{background:#ede0c8;color:#776e65}
+    .tile-8{background:#f2b179}
+    .tile-16{background:#f59563}
+    .tile-32{background:#f67c5f}
+    .tile-64{background:#f65e3b}
+    .tile-128{background:#edcf72;color:#f9f6f2;font-size:24px}
+    .tile-256{background:#edcc61;color:#f9f6f2;font-size:24px}
+    .tile-512{background:#edc850;color:#f9f6f2;font-size:22px}
+    .tile-1024{background:#edc53f;color:#f9f6f2;font-size:20px}
+    .tile-2048{background:#edc22e;color:#f9f6f2;font-size:20px}
+
+    .overlay{
+      position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+      background:rgba(238,228,218,0.5);z-index:5;border-radius:6px;flex-direction:column;
+    }
+    .overlay h2{margin:0 0 10px 0;color:#776e65}
+    .btn{background:#8f7a66;color:white;padding:8px 14px;border-radius:4px;border:none;cursor:pointer}
+
+    @media (max-width:520px){
+      .game{width:95vw}
+      .cell,.tile{height:calc((95vw - 60px)/4)}
+    }
+  </style>
+</head>
+<body>
+  <div class="game">
+    <div class="header">
+      <div>
+        <div class="title">2048</div>
+        <div style="font-size:12px;color:#9e9487">双击打开即可游戏 · 方向键控制</div>
+      </div>
+      <div class="score-box" id="score">0</div>
+    </div>
+
+    <div class="board" id="board">
+      <div class="grid" id="grid">
+        <!-- cells inserted by JS -->
+      </div>
+      <div class="overlay" id="overlay" style="display:none">
+        <h2>游戏结束</h2>
+        <button class="btn" id="restart">重新开始</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const SIZE = 4;
+    let board = [];
+    let score = 0;
+    // 状态机与最小移动间隔（ms）
+    const MIN_MOVE_INTERVAL = 80; // 最小间隔，防止连发
+    let state = 'idle'; // 'idle' | 'moving' | 'gameover'
+    let lastMoveAt = 0;
+    // 防止重复添加 keydown 监听
+    let keydownListenerAdded = false;
+    const gridEl = document.getElementById('grid');
+    const scoreEl = document.getElementById('score');
+    const overlay = document.getElementById('overlay');
+
+    function createEmptyBoard(){
+      const b = [];
+      for(let r=0;r<SIZE;r++){b[r]=[];for(let c=0;c<SIZE;c++)b[r][c]=0}
+      return b;
+    }
+
+    function init(){
+      board = createEmptyBoard();
+      score = 0;
+      overlay.style.display='none';
+      state = 'idle';
+      lastMoveAt = 0;
+      renderGridCells();
+      addRandomTile();
+      addRandomTile();
+      render();
+    }
+
+    function renderGridCells(){
+      gridEl.innerHTML='';
+      for(let r=0;r<SIZE;r++){
+        for(let c=0;c<SIZE;c++){
+          const cell = document.createElement('div');
+          cell.className='cell';
+          cell.dataset.r=r;cell.dataset.c=c;
+          gridEl.appendChild(cell);
+        }
+      }
+    }
+
+    function render(){
+      scoreEl.textContent = score;
+      // clear tiles
+      // remove existing tile elements
+      document.querySelectorAll('.grid .tile').forEach(n=>n.remove());
+      // place tiles
+      for(let r=0;r<SIZE;r++){
+        for(let c=0;c<SIZE;c++){
+          const val = board[r][c];
+          if(val!==0){
+            const tile = document.createElement('div');
+            tile.className = 'tile tile-'+val;
+            tile.textContent = val;
+            // place at grid cell index
+            const index = r*SIZE + c;
+            const cell = gridEl.children[index];
+            cell.appendChild(tile);
+          }
+        }
+      }
+    }
+
+    function addRandomTile(){
+      const empties = [];
+      for(let r=0;r<SIZE;r++)for(let c=0;c<SIZE;c++)if(board[r][c]===0)empties.push([r,c]);
+      if(empties.length===0) return false;
+      const [r,c] = empties[Math.floor(Math.random()*empties.length)];
+      board[r][c] = Math.random()<0.9?2:4;
+      return true;
+    }
+
+    function copyBoard(b){
+      return b.map(row=>row.slice());
+    }
+
+    function boardsEqual(a,b){
+      for(let r=0;r<SIZE;r++)for(let c=0;c<SIZE;c++)if(a[r][c]!==b[r][c])return false;
+      return true;
+    }
+
+    function slideAndMerge(row){
+      const arr = row.filter(v=>v!==0);
+      const res = [];
+      let gained = 0;
+      for(let i=0;i<arr.length;i++){
+        if(i+1<arr.length && arr[i]===arr[i+1]){
+          const merged = arr[i]*2;
+          res.push(merged);
+          gained += merged;
+          i++; // skip next
+        }else{
+          res.push(arr[i]);
+        }
+      }
+      while(res.length<SIZE)res.push(0);
+      return {row:res,gained};
+    }
+
+    function moveLeft(){
+      let moved = false;
+      let totalGain = 0;
+      const newBoard = createEmptyBoard();
+      for(let r=0;r<SIZE;r++){
+        const {row,gained} = slideAndMerge(board[r]);
+        totalGain += gained;
+        newBoard[r] = row;
+        if(!moved && !row.every((v,i)=>v===board[r][i])) moved = true;
+      }
+      if(moved){board=newBoard;score+=totalGain}
+      return moved;
+    }
+
+    function moveRight(){
+      let moved=false;let totalGain=0;
+      const newBoard = createEmptyBoard();
+      for(let r=0;r<SIZE;r++){
+        const rev = board[r].slice().reverse();
+        const {row,gained} = slideAndMerge(rev);
+        totalGain+=gained;
+        newBoard[r] = row.reverse();
+        if(!moved && !newBoard[r].every((v,i)=>v===board[r][i])) moved=true;
+      }
+      if(moved){board=newBoard;score+=totalGain}
+      return moved;
+    }
+
+    function transpose(b){
+      const t = createEmptyBoard();
+      for(let r=0;r<SIZE;r++)for(let c=0;c<SIZE;c++)t[r][c]=b[c][r];
+      return t;
+    }
+
+    function moveUp(){
+      board = transpose(board);
+      const moved = moveLeft();
+      board = transpose(board);
+      return moved;
+    }
+
+    function moveDown(){
+      board = transpose(board);
+      const moved = moveRight();
+      board = transpose(board);
+      return moved;
+    }
+
+    function canMove(){
+      // any empty cell
+      for(let r=0;r<SIZE;r++)for(let c=0;c<SIZE;c++)if(board[r][c]===0)return true;
+      // any adjacent equal
+      for(let r=0;r<SIZE;r++){
+        for(let c=0;c<SIZE;c++){
+          const v=board[r][c];
+          if(r+1<SIZE && board[r+1][c]===v) return true;
+          if(c+1<SIZE && board[r][c+1]===v) return true;
+        }
+      }
+      return false;
+    }
+
+    function handleMove(direction){
+      // handleMove 执行同步移动逻辑（moveX 返回是否有改变）
+      let moved=false;
+      if(direction==='left') moved = moveLeft();
+      if(direction==='right') moved = moveRight();
+      if(direction==='up') moved = moveUp();
+      if(direction==='down') moved = moveDown();
+      if(moved){
+        addRandomTile();
+        render();
+        if(!canMove()){ showGameOver(); }
+      } else {
+        // 无有效移动时也要检测是否已经无路可走，若是则显示结束覆盖层
+        if(!canMove()){
+          render();
+          showGameOver();
+        }
+      }
+    }
+
+    function showGameOver(){
+      overlay.style.display='flex';
+    }
+
+    // 注册 keydown 监听（确保只注册一次）
+    function keydownHandler(e){
+      // 忽略按键自动重复（按住时的重复事件）
+      if(e.repeat) return;
+      // 若 overlay 显示，则将状态设为 gameover 并忽略
+      if(overlay.style.display === 'flex'){
+        state = 'gameover';
+        return;
+      }
+      // 仅在 idle 状态处理输入
+      if(state !== 'idle') return;
+      const key = e.key;
+      // 仅处理方向键
+      if(!['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(key)) return;
+      e.preventDefault();
+      // 进入 moving 状态并记录时间，确保至少等待最小间隔
+      state = 'moving';
+      lastMoveAt = Date.now();
+      if(key==='ArrowUp') handleMove('up');
+      if(key==='ArrowDown') handleMove('down');
+      if(key==='ArrowLeft') handleMove('left');
+      if(key==='ArrowRight') handleMove('right');
+      // 在最短间隔后恢复到 idle（如果游戏未结束）
+      setTimeout(()=>{
+        if(state === 'moving' && overlay.style.display !== 'flex'){
+          state = 'idle';
+        }
+      }, MIN_MOVE_INTERVAL);
+    }
+    if(!keydownListenerAdded){
+      document.addEventListener('keydown', keydownHandler);
+      keydownListenerAdded = true;
+    }
+
+    document.getElementById('restart').addEventListener('click',init);
+
+    // initialize
+    init();
+  </script>
+</body>
+</html>
