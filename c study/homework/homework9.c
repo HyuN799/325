@@ -14,16 +14,16 @@ for (i = 0; i < 3; i++)
 {
     for(j = 0;j < 3 - i; j++)
   {
-    if(digits[j] > digits[j+1])
+    if(digits[j] > digits[j+1])//冒泡排序
     {
         temp = digits[j];
-        digits[j] = digits[j + 1];
+        digits[j] = digits[j + 1];//temp中转换序
         digits[ j + 1] = temp;
     }
   }
 }
 printf("从小到大的结果是：");
-for(i=0l;i<4;i++)
+for(i=0;i<4;i++)
 {
     printf("%d ",digits[i]);
 }
