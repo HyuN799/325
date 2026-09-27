@@ -1,0 +1,11 @@
+//输出字符图像
+#include <stdio.h>
+int main()
+{
+    printf("*****\n");
+    printf(" *****\n");
+    printf("  *****\n");
+    printf("   *****\n");
+  return 0;
+
+}
