@@ -20,7 +20,7 @@
 
 使用 HTML + CSS 制作的个人主页，部署在 GitHub Pages 上。
 
-- **访问地址**：https://你的用户名.github.io/你的仓库名/
+- **访问地址**：https://HyuN799.github.io/325/
 - **技术栈**：HTML5 + CSS3
 - **包含内容**：个人介绍、兴趣爱好、联系方式
 
