@@ -964,10 +964,31 @@ function toggleHeroMusic() {
       if (!ok) return;
       hasPlayed = true;
     }
-    audio.play();
+    var playPromise = audio.play();
+    if (playPromise && playPromise.catch) {
+      playPromise.catch(function(err) {
+        showMusicTip();
+      });
+    }
+    // 备用：2秒后仍未播放则提示
+    setTimeout(function() {
+      if (audio.paused && hasPlayed) showMusicTip();
+    }, 2000);
   } else {
     audio.pause();
   }
+}
+
+var tipShown = false;
+function showMusicTip() {
+  if (tipShown) return;
+  tipShown = true;
+  var tip = document.createElement('div');
+  tip.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#fff,#ffe4ec);color:#d6336c;padding:12px 18px;border-radius:12px;box-shadow:0 8px 24px rgba(214,51,108,0.3);z-index:9999;font-size:14px;max-width:90%;text-align:center;line-height:1.6;';
+  tip.innerHTML = '⚠️ 当前浏览器可能不支持此音乐格式<br>建议使用 <b>Edge / Chrome / 夸克</b> 浏览器打开';
+  document.body.appendChild(tip);
+  setTimeout(function() { tip.style.opacity = '0'; tip.style.transition = 'opacity 0.5s'; }, 4000);
+  setTimeout(function() { tip.remove(); tipShown = false; }, 4600);
 }
 
 function toggleHeroMute() {
