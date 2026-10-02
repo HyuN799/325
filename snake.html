@@ -41,6 +41,8 @@
     background: rgba(255,255,255,0.08);
     border-radius: 10px;
     font-size: 14px;
+    flex-wrap: wrap;
+    gap: 10px;
   }
   .info-item span { font-weight: bold; color: #00ff88; }
   canvas {
@@ -104,12 +106,44 @@
     font-size: 18px;
     margin-bottom: 20px;
   }
+
+  /* 难度选择 */
+  .difficulty-bar {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 15px;
+  }
+  .diff-btn {
+    padding: 6px 16px;
+    font-size: 12px;
+    border-radius: 20px;
+    background: rgba(255,255,255,0.08);
+    color: #aaa;
+    border: 1px solid rgba(255,255,255,0.1);
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+  }
+  .diff-btn:hover { background: rgba(255,255,255,0.15); }
+  .diff-btn.active {
+    background: linear-gradient(135deg, #00ff88, #00ccff);
+    color: #1a1a2e;
+    border-color: transparent;
+    font-weight: 600;
+  }
 </style>
 </head>
 <body>
 
 <div class="game-container">
   <h1>🐍 贪吃蛇</h1>
+
+  <div class="difficulty-bar">
+    <button class="diff-btn" onclick="setDifficulty('easy')" id="diffEasy">简单</button>
+    <button class="diff-btn active" onclick="setDifficulty('normal')" id="diffNormal">普通</button>
+    <button class="diff-btn" onclick="setDifficulty('hard')" id="diffHard">困难</button>
+  </div>
   
   <div class="info-bar">
     <div class="info-item">得分：<span id="score">0</span></div>
@@ -150,15 +184,31 @@ let gameLoop = null;
 let gameRunning = false;
 let aiMode = false;
 let gameSpeed = 120;
+let difficulty = 'normal';
+
+const speedMap = { easy: 180, normal: 120, hard: 70 };
 
 document.getElementById('highScore').textContent = highScore;
 
+function setDifficulty(level) {
+  difficulty = level;
+  gameSpeed = speedMap[level];
+  document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('diff' + level.charAt(0).toUpperCase() + level.slice(1)).classList.add('active');
+  if (gameRunning) {
+    clearInterval(gameLoop);
+    gameLoop = setInterval(() => {
+      if (aiMode) aiMove();
+      moveSnake();
+      drawGame();
+    }, gameSpeed);
+  }
+}
+
 function drawGame() {
-  // 清空画布
   ctx.fillStyle = '#0a0a1a';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  // 画网格
   ctx.strokeStyle = 'rgba(255,255,255,0.03)';
   for (let i = 0; i <= tileCount; i++) {
     ctx.beginPath();
@@ -171,7 +221,6 @@ function drawGame() {
     ctx.stroke();
   }
 
-  // 画食物
   ctx.fillStyle = '#ff4444';
   ctx.shadowColor = '#ff4444';
   ctx.shadowBlur = 10;
@@ -180,7 +229,6 @@ function drawGame() {
   ctx.fill();
   ctx.shadowBlur = 0;
 
-  // 画蛇
   snake.forEach((segment, index) => {
     if (index === 0) {
       ctx.fillStyle = '#00ff88';
@@ -199,13 +247,11 @@ function drawGame() {
 function moveSnake() {
   const head = {x: snake[0].x + dx, y: snake[0].y + dy};
 
-  // 撞墙检测
   if (head.x < 0 || head.x >= tileCount || head.y < 0 || head.y >= tileCount) {
     gameOver();
     return;
   }
 
-  // 撞自己检测
   if (snake.some(s => s.x === head.x && s.y === head.y)) {
     gameOver();
     return;
@@ -213,7 +259,6 @@ function moveSnake() {
 
   snake.unshift(head);
 
-  // 吃食物
   if (head.x === food.x && head.y === food.y) {
     score += 10;
     document.getElementById('score').textContent = score;
@@ -275,20 +320,17 @@ function resetScore() {
   document.getElementById('highScore').textContent = 0;
 }
 
-// AI逻辑：贪心 + 避障
 function aiMove() {
   const head = snake[0];
   const directions = [
-    {dx: 1, dy: 0},  // 右
-    {dx: -1, dy: 0}, // 左
-    {dx: 0, dy: 1},  // 下
-    {dx: 0, dy: -1}  // 上
+    {dx: 1, dy: 0},
+    {dx: -1, dy: 0},
+    {dx: 0, dy: 1},
+    {dx: 0, dy: -1}
   ];
 
-  // 不能反向
   const validDirs = directions.filter(d => !(d.dx === -dx && d.dy === -dy));
 
-  // 过滤掉会撞墙和撞自己的方向
   const safeDirs = validDirs.filter(d => {
     const newHead = {x: head.x + d.dx, y: head.y + d.dy};
     if (newHead.x < 0 || newHead.x >= tileCount || newHead.y < 0 || newHead.y >= tileCount) return false;
@@ -298,7 +340,6 @@ function aiMove() {
 
   if (safeDirs.length === 0) return;
 
-  // 从安全方向中选离食物最近的
   let bestDir = safeDirs[0];
   let minDist = Infinity;
 
@@ -306,7 +347,6 @@ function aiMove() {
     const newHead = {x: head.x + d.dx, y: head.y + d.dy};
     const dist = Math.abs(newHead.x - food.x) + Math.abs(newHead.y - food.y);
     
-    // 预判下一步是否安全（简单死路检测）
     const nextSafe = directions.some(d2 => {
       if (d2.dx === -d.dx && d2.dy === -d.dy) return false;
       const nextHead = {x: newHead.x + d2.dx, y: newHead.y + d2.dy};
@@ -325,7 +365,6 @@ function aiMove() {
   dy = bestDir.dy;
 }
 
-// 键盘控制
 document.addEventListener('keydown', (e) => {
   if (aiMode) return;
   if (!gameRunning) return;
@@ -346,7 +385,6 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
-// 初始画面
 drawGame();
 </script>
 
