@@ -11,7 +11,7 @@
 html, body {
   min-height: 100vh;
   font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
-  color: #fff;
+  color: #2d3748;
   overflow-x: hidden;
 }
 
@@ -25,12 +25,12 @@ body::before {
   position: fixed;
   top: 0; left: 0;
   width: 100%; height: 100%;
-  background: linear-gradient(135deg, rgba(30, 10, 60, 0.5) 0%, rgba(10, 20, 50, 0.6) 100%);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 240, 245, 0.25) 100%);
   z-index: -1;
 }
 
-/* 星星粒子效果 */
-.stars {
+/* 花瓣粒子效果 */
+.petals {
   position: fixed;
   top: 0; left: 0;
   width: 100%; height: 100%;
@@ -38,16 +38,25 @@ body::before {
   z-index: 0;
   overflow: hidden;
 }
-.star {
+.petal {
   position: absolute;
-  width: 2px; height: 2px;
-  background: #fff;
-  border-radius: 50%;
-  animation: twinkle 3s infinite ease-in-out;
+  width: 10px; height: 10px;
+  background: rgba(255, 182, 193, 0.6);
+  border-radius: 50% 0 50% 50%;
+  animation: fall linear infinite;
+  opacity: 0.7;
 }
-@keyframes twinkle {
-  0%, 100% { opacity: 0.3; transform: scale(1); }
-  50% { opacity: 1; transform: scale(1.5); }
+@keyframes fall {
+  0% {
+    transform: translateY(-10vh) rotate(0deg) translateX(0);
+    opacity: 0;
+  }
+  10% { opacity: 0.8; }
+  90% { opacity: 0.8; }
+  100% {
+    transform: translateY(110vh) rotate(720deg) translateX(100px);
+    opacity: 0;
+  }
 }
 
 .container {
@@ -70,15 +79,15 @@ body::before {
   height: 140px;
   margin: 0 auto 24px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.5);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 2px solid rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.7);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 56px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 8px 32px rgba(255, 150, 180, 0.25);
   overflow: hidden;
 }
 .avatar-wrap img {
@@ -90,36 +99,38 @@ body::before {
   font-size: 38px;
   font-weight: 600;
   margin-bottom: 10px;
-  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+  color: #553c9a;
+  text-shadow: 0 2px 20px rgba(255, 255, 255, 0.8);
   letter-spacing: 1px;
 }
 
 .hero .tagline {
   font-size: 16px;
-  color: rgba(255, 255, 255, 0.8);
+  color: #6b46c1;
   margin-bottom: 6px;
+  font-weight: 500;
 }
 
 .hero .major {
   font-size: 14px;
-  color: rgba(255, 255, 255, 0.6);
+  color: #805ad5;
 }
 
 /* 玻璃卡片通用 */
 .glass-card {
-  background: rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.7);
   border-radius: 20px;
   padding: 28px;
   margin-bottom: 24px;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 8px 32px rgba(147, 112, 219, 0.15);
 }
 .glass-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 12px 40px rgba(147, 112, 219, 0.25);
 }
 
 .section-title {
@@ -129,28 +140,30 @@ body::before {
   display: flex;
   align-items: center;
   gap: 10px;
+  color: #553c9a;
 }
 .section-title::before {
   content: '';
   width: 4px;
   height: 22px;
-  background: linear-gradient(to bottom, #a78bfa, #60a5fa);
+  background: linear-gradient(to bottom, #f687b3, #9f7aea);
   border-radius: 2px;
 }
 
 /* 关于我 */
 .about p {
-  color: rgba(255, 255, 255, 0.85);
+  color: #4a5568;
   line-height: 1.8;
   font-size: 14.5px;
 }
 .placeholder-text {
-  color: rgba(255, 255, 255, 0.4) !important;
+  color: #a0aec0 !important;
   font-style: italic;
-  border: 1px dashed rgba(255, 255, 255, 0.2);
+  border: 1px dashed #cbd5e0;
   padding: 12px;
   border-radius: 8px;
   margin-top: 8px;
+  background: rgba(255, 255, 255, 0.3);
 }
 
 /* 技能标签 */
@@ -161,16 +174,18 @@ body::before {
 }
 .skill-tag {
   padding: 8px 18px;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(159, 122, 234, 0.3);
   border-radius: 20px;
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.9);
+  color: #6b46c1;
+  font-weight: 500;
   transition: all 0.3s ease;
 }
 .skill-tag:hover {
-  background: rgba(167, 139, 250, 0.3);
-  border-color: rgba(167, 139, 250, 0.5);
+  background: linear-gradient(135deg, rgba(246, 135, 179, 0.3), rgba(159, 122, 234, 0.3));
+  border-color: #b794f4;
+  color: #553c9a;
   transform: scale(1.05);
 }
 
@@ -181,8 +196,8 @@ body::before {
   gap: 16px;
 }
 .project-card {
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.7);
   border-radius: 14px;
   padding: 20px;
   transition: all 0.3s ease;
@@ -192,9 +207,10 @@ body::before {
   display: block;
 }
 .project-card:hover {
-  background: rgba(255, 255, 255, 0.12);
-  border-color: rgba(167, 139, 250, 0.4);
+  background: rgba(255, 255, 255, 0.75);
+  border-color: rgba(246, 135, 179, 0.5);
   transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(246, 135, 179, 0.2);
 }
 .project-icon {
   font-size: 28px;
@@ -204,10 +220,11 @@ body::before {
   font-size: 16px;
   margin-bottom: 6px;
   font-weight: 600;
+  color: #553c9a;
 }
 .project-card p {
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.6);
+  color: #718096;
   line-height: 1.6;
 }
 
@@ -222,17 +239,19 @@ body::before {
   align-items: center;
   gap: 10px;
   padding: 10px 18px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.7);
   border-radius: 12px;
   text-decoration: none;
-  color: inherit;
+  color: #553c9a;
+  font-weight: 500;
   transition: all 0.3s ease;
   font-size: 13px;
 }
 .contact-item:hover {
-  background: rgba(96, 165, 250, 0.2);
-  border-color: rgba(96, 165, 250, 0.4);
+  background: linear-gradient(135deg, rgba(246, 135, 179, 0.25), rgba(159, 122, 234, 0.25));
+  border-color: #e9d8fd;
+  color: #553c9a;
   transform: translateY(-2px);
 }
 .contact-item .icon {
@@ -242,7 +261,7 @@ body::before {
 /* 页脚 */
 footer {
   text-align: center;
-  color: rgba(255, 255, 255, 0.4);
+  color: #a0aec0;
   font-size: 12px;
   padding: 30px 0 10px;
 }
@@ -268,8 +287,8 @@ footer {
 .todo-badge {
   display: inline-block;
   padding: 2px 10px;
-  background: rgba(251, 191, 36, 0.2);
-  color: #fbbf24;
+  background: rgba(246, 173, 85, 0.25);
+  color: #c05621;
   border-radius: 10px;
   font-size: 11px;
   margin-left: 8px;
@@ -288,8 +307,8 @@ footer {
 </head>
 <body>
 
-<!-- 星星背景 -->
-<div class="stars" id="stars"></div>
+<!-- 花瓣背景 -->
+<div class="petals" id="petals"></div>
 
 <div class="container">
 
@@ -297,7 +316,7 @@ footer {
   <div class="hero">
     <div class="avatar-wrap">
       <!-- TODO: 替换为你的头像图片 <img src="avatar.jpg" alt="头像"> -->
-      🌟
+      🌸
     </div>
     <h1>你的名字 <span class="todo-badge">待填写</span></h1>
     <p class="tagline">广东工业大学 · 微电子科学与工程</p>
@@ -374,27 +393,29 @@ footer {
   </div>
 
   <footer>
-    © 2026 你的名字 · Made with 💜 · 基于广东工业大学考核项目
+    © 2026 你的名字 · Made with 🌸 · 基于广东工业大学考核项目
   </footer>
 
 </div>
 
 <script>
-// 生成星星
+// 生成飘落樱花
 (function() {
-  var starsContainer = document.getElementById('stars');
-  var count = 50;
+  var container = document.getElementById('petals');
+  var count = 30;
   for (var i = 0; i < count; i++) {
-    var star = document.createElement('div');
-    star.className = 'star';
-    star.style.left = Math.random() * 100 + '%';
-    star.style.top = Math.random() * 100 + '%';
-    star.style.animationDelay = Math.random() * 3 + 's';
-    star.style.animationDuration = (2 + Math.random() * 3) + 's';
-    var size = 1 + Math.random() * 2;
-    star.style.width = size + 'px';
-    star.style.height = size + 'px';
-    starsContainer.appendChild(star);
+    var petal = document.createElement('div');
+    petal.className = 'petal';
+    petal.style.left = Math.random() * 100 + '%';
+    petal.style.animationDuration = (8 + Math.random() * 10) + 's';
+    petal.style.animationDelay = (Math.random() * 10) + 's';
+    var size = 6 + Math.random() * 10;
+    petal.style.width = size + 'px';
+    petal.style.height = size + 'px';
+    petal.style.opacity = 0.4 + Math.random() * 0.4;
+    var hue = 330 + Math.random() * 30;
+    petal.style.background = 'hsla(' + hue + ', 80%, 75%, 0.7)';
+    container.appendChild(petal);
   }
 })();
 </script>
